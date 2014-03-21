@@ -19,9 +19,14 @@ EMAILSIMPLE="chabert.antoine@gmail.com"
 # nombre test
 COUNT=4
 
+# log
+LOG="/var/log/ping_monitoring.log"
+
+echo "----- BEGIN Ping test at $(date) -----" >> $LOG
+
 for myHost in $HOSTS
 do
-    if ! ping -q -c $COUNT $myHost >> /dev/null
+    if ! ping -q -c $COUNT $myHost >> $LOG
     # elle est KO
     then
         if [ ! -f /tmp/mail.$myHost ]
@@ -53,3 +58,5 @@ do
         fi
     fi
 done
+
+echo "----- END Ping test at $(date) -----" >> $LOG
