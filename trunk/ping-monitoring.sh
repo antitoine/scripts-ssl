@@ -5,8 +5,8 @@
 HOSTS="178.33.41.240"
 
 # sujets des mails
-SUBJECT="[ KO ] Ping Monitoring - Machine Down"
-SUBJECT_UP="[ OK ] Ping Monitoring - Machine Up"
+SUBJECT="[ KO ] Ping Monitoring - Machine Down - Server"
+SUBJECT_UP="[ OK ] Ping Monitoring - Machine Up - Server"
 
 # envoyer un SMS via tm4b.com
 #EMAILID="moi@domain.tld"
