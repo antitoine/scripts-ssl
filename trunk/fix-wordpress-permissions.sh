@@ -1,3 +1,7 @@
+#!/bin/sh
+# Ce script permet de fixer les droits pour un Wordpress maintenu
+# Utilisez le script fix-old-site-permissions.sh pour les sites plus maintenu
+
 WP_OWNER=root # <-- wordpress owner
 WP_GROUP=root # <-- wordpress group
 WP_ROOT=/var/www/projet2013 # <-- wordpress root directory
