@@ -2,9 +2,9 @@
 # Put the web server in maintenance mode
 
 APACHEDIR="/etc/apache2/"
-APACHEEXE="/etc/init.d/apache2"
-TMPFILE="/home/script/tmp.maintenance"
-APACHEMAINPAGE="maintenance"
+APACHEEXE="service apache2 reload"
+TMPFILE="/home/scripts/tmp.maintenance"
+APACHEMAINPAGE="00-maintenance"
 
 # Make sure only root can run our script
 if [ "$(id -u)" != "0" ]; then
@@ -22,12 +22,14 @@ case "$1" in
         cd $APACHEDIR"sites-enabled/"
         for site in *; do
             echo $site >> $TMPFILE
-            a2dissite $site
         done
+        while read site; do
+            a2dissite $site
+        done < $TMPFILE
         echo "Enable maintenance page :"
         a2ensite $APACHEMAINPAGE
         echo "Restart Apache :"
-        $APACHEEXE restart
+        $APACHEEXE
         echo "Done."
         ;;
     stop)
@@ -38,7 +40,7 @@ case "$1" in
         echo "Disable maintenance page :"
         a2dissite $APACHEMAINPAGE
         echo "Restart Apache :"
-        $APACHEEXE restart
+        $APACHEEXE
         echo "Remove tmp file :"
         rm $TMPFILE
         echo "Done."
