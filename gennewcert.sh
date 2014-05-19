@@ -13,13 +13,12 @@ fi
 case "$1" in
     -n | --name)
         cd ${CADIR}
-        mv certs/${2}.pem old/
-        mv private/${2}.key old/
-        mv req/${2}.req old/
+        mv private/${2}.key private/${2}-old.key
+        mv req/${2}.req req/${2}-old.req
         openssl genrsa -aes256 -out private/${2}.key 2048
         openssl req -sha256 -new -key private/${2}.key -out req/${2}.req -config openssl.cnf
         openssl ca -days 365 -in req/${2}.req -out certs/${2}.pem -config ./openssl.cnf
-        cp certs/${2}.pem ${SSLDIR}certs/
+        mv certs/${2}.pem ${SSLDIR}certs/
         cp private/${2}.key ${SSLDIR}private/
         ;;
     *)
