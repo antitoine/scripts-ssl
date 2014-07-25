@@ -2,17 +2,7 @@
 # firewall            Start iptables firewall
 
 . /lib/lsb/init-functions
-
-#Daemon name
-DAEMON="firewall"
-#DNS namesserver
-DNS=$(cat /etc/resolv.conf | grep nameserver | cut -d " " -f2)
-
-#List of open ports in tcp protocol
-TCPPORTS="22 20 80 443"
-
-#List of open ports in udp protocol
-UDPPORTS=""
+. /etc/firewall/firewall.conf
 
 purge() {
     log_action_msg "Purging and allowing all traffic"
