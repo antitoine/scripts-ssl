@@ -29,8 +29,10 @@ setup() {
     iptables -A OUTPUT -o lo -j ACCEPT
 
     # Authorise DNS request
-    iptables -A INPUT  -s $DNS -p udp --sport 53 -m state --state ESTABLISHED,RELATED -j ACCEPT
-    iptables -A OUTPUT -d $DNS -p udp --dport 53 -m state --state NEW,ESTABLISHED     -j ACCEPT
+    if [ -n "$ENABLE_DNS" ] && [ "$ENABLE_DNS" = "true" ]; then
+        iptables -A INPUT  -s $DNS -p udp --sport 53 -m state --state ESTABLISHED,RELATED -j ACCEPT
+        iptables -A OUTPUT -d $DNS -p udp --dport 53 -m state --state NEW,ESTABLISHED     -j ACCEPT
+    fi
 
     # ICMP (Ping)
     iptables -A INPUT  -p icmp -j ACCEPT
