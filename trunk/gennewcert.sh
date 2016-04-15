@@ -64,7 +64,7 @@ revoke() {
     
     if [ -f $SSLCERTDIR/$CERTNAME.pem ]; then
         echo "Révocation du certificat $CERTNAME.pem : "
-        execute "openssl ca -revoke $SSLCERTDIR/$CERTNAME.pem -config $CONFFILS" || (echo "Mauvaise pass-phrase" ; exit 1)
+        execute "openssl ca -revoke $SSLCERTDIR/$CERTNAME.pem -config $CONFFILS" || (echo "Mauvaise pass-phrase" && exit 1)
         echo "Déplacement de l'ancien certificat (""$ROSE""$SSLCERTDIR/$CERTNAME.pem""$NORMAL"" vers ""$ROSE""$OLDCERTDIR/$CERTNAME-$DATE.pem""$NORMAL"") : "
         execute "mv $SSLCERTDIR/$CERTNAME.pem $OLDCERTDIR/$CERTNAME-$DATE.pem"
     else
@@ -111,13 +111,13 @@ create() {
     fi
 
     echo "Création de la nouvelle clé privée (""$ROSE""$CAPRIVATEDIR/$CERTNAME.key""$NORMAL"") : "
-    execute "openssl genrsa -aes256 -out $CAPRIVATEDIR/$CERTNAME.key 2048" || (echo "Erreur lors de la création de la clé privée" ; exit 1)
+    execute "openssl genrsa -aes256 -out $CAPRIVATEDIR/$CERTNAME.key 2048" || (echo "Erreur lors de la création de la clé privée" && exit 1)
 
     echo "Création de la nouvelle requête (""$ROSE""$CAREQDIR/$CERTNAME.req""$NORMAL"") : "
-    execute "openssl req -sha256 -new -key $CAPRIVATEDIR/$CERTNAME.key -out $CAREQDIR/$CERTNAME.req -config $CONFFILS" || (echo "Erreur lors de la création de la requête" ; exit 1)
+    execute "openssl req -sha256 -new -key $CAPRIVATEDIR/$CERTNAME.key -out $CAREQDIR/$CERTNAME.req -config $CONFFILS" || (echo "Erreur lors de la création de la requête" && exit 1)
 
     echo "Création du certificat et validation de celui-ci par le CA (""$ROSE""$SSLCERTDIR/$CERTNAME.pem""$NORMAL"" et copie du nouveau certificat dans ""$ROSE""$CACERTDIR/""$NORMAL"") : "
-    execute "openssl ca -days 365 -in $CAREQDIR/$CERTNAME.req -out $SSLCERTDIR/$CERTNAME.pem -config $CONFFILS" || (echo "Erreur lors de la création du certificat à valider" ; exit 1)
+    execute "openssl ca -days 365 -in $CAREQDIR/$CERTNAME.req -out $SSLCERTDIR/$CERTNAME.pem -config $CONFFILS" || (echo "Erreur lors de la création du certificat à valider" && exit 1)
 
     echo "Copie de la clé privée vers le dossier SSL (dans ""$ROSE""$SSLPRIVATEDIR/$CERTNAME.key""$NORMAL"") : "
     execute "cp -i $CAPRIVATEDIR/$CERTNAME.key $SSLPRIVATEDIR/$CERTNAME.key"
