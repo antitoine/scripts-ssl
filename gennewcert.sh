@@ -74,17 +74,17 @@ revoke() {
 
     if [ -f $SSLPRIVATEDIR/$CERTNAME.key ]; then
         echo "Suppression de la copie de l'ancienne clé privée (""$ROSE""$SSLPRIVATEDIR/$CERTNAME.key""$NORMAL"") : "
-        execute "rm $SSLPRIVATEDIR/$CERTNAME.key"
+        execute "rm -i $SSLPRIVATEDIR/$CERTNAME.key"
     fi
 
     if [ -f $CAPRIVATEDIR/$CERTNAME.key ]; then
         echo "Déplacement de l'ancienne clé privée (""$ROSE""$CAPRIVATEDIR/$CERTNAME.key""$NORMAL"" vers ""$ROSE""$OLDPRIVATEDIR/$CERTNAME-$DATE.key""$NORMAL"") : "
-        execute "mv $CAPRIVATEDIR/$CERTNAME.key $OLDPRIVATEDIR/$CERTNAME-$DATE.key"
+        execute "mv -i $CAPRIVATEDIR/$CERTNAME.key $OLDPRIVATEDIR/$CERTNAME-$DATE.key"
     fi
 
     if [ -f $CAREQDIR/$CERTNAME.req ]; then
         echo "Déplacement de l'ancienne requête (""$ROSE""$CAREQDIR/$CERTNAME.req""$NORMAL"" vers ""$ROSE""$OLDREQDIR/$CERTNAME-$DATE.req""$NORMAL"") : "
-        execute "mv $CAREQDIR/$CERTNAME.req $OLDREQDIR/$CERTNAME-$DATE.req"
+        execute "mv -i $CAREQDIR/$CERTNAME.req $OLDREQDIR/$CERTNAME-$DATE.req"
     fi
 
     echo "Révocation du certificat ""$CYAN""$CERTNAME""$NORMAL"" terminée"
@@ -111,16 +111,16 @@ create() {
     fi
 
     echo "Création de la nouvelle clé privée (""$ROSE""$CAPRIVATEDIR/$CERTNAME.key""$NORMAL"") : "
-    execute "openssl genrsa -aes256 -out $CAPRIVATEDIR/$CERTNAME.key 2048"
+    execute "openssl genrsa -aes256 -out $CAPRIVATEDIR/$CERTNAME.key 2048" || (echo "Erreur lors de la création de la clé privée" ; exit 1)
 
     echo "Création de la nouvelle requête (""$ROSE""$CAREQDIR/$CERTNAME.req""$NORMAL"") : "
-    execute "openssl req -sha256 -new -key $CAPRIVATEDIR/$CERTNAME.key -out $CAREQDIR/$CERTNAME.req -config $CONFFILS"
+    execute "openssl req -sha256 -new -key $CAPRIVATEDIR/$CERTNAME.key -out $CAREQDIR/$CERTNAME.req -config $CONFFILS" || (echo "Erreur lors de la création de la requête" ; exit 1)
 
     echo "Création du certificat et validation de celui-ci par le CA (""$ROSE""$SSLCERTDIR/$CERTNAME.pem""$NORMAL"" et copie du nouveau certificat dans ""$ROSE""$CACERTDIR/""$NORMAL"") : "
-    execute "openssl ca -days 365 -in $CAREQDIR/$CERTNAME.req -out $SSLCERTDIR/$CERTNAME.pem -config $CONFFILS"
+    execute "openssl ca -days 365 -in $CAREQDIR/$CERTNAME.req -out $SSLCERTDIR/$CERTNAME.pem -config $CONFFILS" || (echo "Erreur lors de la création du certificat à valider" ; exit 1)
 
     echo "Copie de la clé privée vers le dossier SSL (dans ""$ROSE""$SSLPRIVATEDIR/$CERTNAME.key""$NORMAL"") : "
-    execute "cp $CAPRIVATEDIR/$CERTNAME.key $SSLPRIVATEDIR/$CERTNAME.key"
+    execute "cp -i $CAPRIVATEDIR/$CERTNAME.key $SSLPRIVATEDIR/$CERTNAME.key"
 
     echo "Génération du certificat ""$CYAN""$CERTNAME""$NORMAL"" terminée"
 }
@@ -130,28 +130,7 @@ update() {
 
     echo "Mise à jour du certificat $CYAN""$CERTNAME""$NORMAL ..."
 
-    if [ -f $SSLCERTDIR/$CERTNAME.pem ]; then
-        echo "Révocation du certificat $CERTNAME.pem : "
-        execute "openssl ca -revoke $SSLCERTDIR/$CERTNAME.pem -config $CONFFILS"
-
-        echo "Déplacement de l'ancien certificat (""$ROSE""$SSLCERTDIR/$CERTNAME.pem""$NORMAL"" vers ""$ROSE""$OLDCERTDIR/$CERTNAME-$DATE.pem""$NORMAL"") : "
-        execute "mv $SSLCERTDIR/$CERTNAME.pem $OLDCERTDIR/$CERTNAME-$DATE.pem"
-
-    else
-        echo "$ROUGE""Il n'existe pas de certificat avec ce nom : $ROSE""$SSLCERTDIR/$CERTNAME.pem"
-        exit 1
-    fi
-
-    if [ -f $CAPRIVATEDIR/$CERTNAME.key ]; then
-        echo "Déplacement de l'ancienne clé privée (""$ROSE""$CAPRIVATEDIR/$CERTNAME.key""$NORMAL"" vers ""$ROSE""$OLDPRIVATEDIR/$CERTNAME-$DATE.key""$NORMAL"") : "
-        execute "mv $CAPRIVATEDIR/$CERTNAME.key $OLDPRIVATEDIR/$CERTNAME-$DATE.key"
-    fi
-
-    if [ -f $CAREQDIR/$CERTNAME.req ]; then
-        echo "Déplacement de l'ancienne requête (""$ROSE""$CAREQDIR/$CERTNAME.req""$NORMAL"" vers ""$ROSE""$OLDREQDIR/$CERTNAME-$DATE.req""$NORMAL"") : "
-        execute "mv $CAREQDIR/$CERTNAME.req $OLDREQDIR/$CERTNAME-$DATE.req"
-
-    fi
+    revoke $CERTNAME
 
     create $CERTNAME
 
