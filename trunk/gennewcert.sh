@@ -40,6 +40,11 @@ JAUNE="\\033[1;33m"
 CYAN="\\033[1;36m"
 
 ## Fonctions générales
+exit_with_error_msg() {
+    echo "$ROUGE""$1""$NORMAL" 1>&2
+    exit 1
+}
+
 execute() {
     if [ -z "$1" ]; then 
         echo "L'argument de la commande à exécuter n'est pas présent !";
@@ -50,8 +55,7 @@ execute() {
 
 check_certname() {
     if [ -z "$1" ]; then 
-        echo "Le nom du certificat est obligatoire (CERTNAME) !"
-        exit 1
+        exit_with_error_msg "Le nom du certificat est obligatoire (CERTNAME) !"
     else
         CERTNAME=$1
     fi
@@ -64,12 +68,11 @@ revoke() {
     
     if [ -f $SSLCERTDIR/$CERTNAME.pem ]; then
         echo "Révocation du certificat $CERTNAME.pem : "
-        execute "openssl ca -revoke $SSLCERTDIR/$CERTNAME.pem -config $CONFFILS" || (echo "Mauvaise pass-phrase" && exit 1)
+        execute "openssl ca -revoke $SSLCERTDIR/$CERTNAME.pem -config $CONFFILS" || exit_with_error_msg "Mauvaise pass-phrase"
         echo "Déplacement de l'ancien certificat (""$ROSE""$SSLCERTDIR/$CERTNAME.pem""$NORMAL"" vers ""$ROSE""$OLDCERTDIR/$CERTNAME-$DATE.pem""$NORMAL"") : "
         execute "mv $SSLCERTDIR/$CERTNAME.pem $OLDCERTDIR/$CERTNAME-$DATE.pem"
     else
-        echo "$ROUGE""Il n'existe pas de certificat avec ce nom : $ROSE""$SSLCERTDIR/$CERTNAME.pem"
-        exit 1
+        exit_with_error_msg "Il n'existe pas de certificat avec ce nom : $ROSE""$SSLCERTDIR/$CERTNAME.pem"
     fi
 
     if [ -f $SSLPRIVATEDIR/$CERTNAME.key ]; then
@@ -96,28 +99,25 @@ create() {
     echo "Création du certificat $CYAN""$CERTNAME""$NORMAL ..."
 
     if [ -f $CAPRIVATEDIR/$CERTNAME.key ]; then
-        echo "$ROUGE""Il existe déjà une clé privée avec ce nom (option update ?) : $ROSE""$CAPRIVATEDIR/$CERTNAME.key"
-        exit 1
+        exit_with_error_msg "Il existe déjà une clé privée avec ce nom (option update ?) : $ROSE""$CAPRIVATEDIR/$CERTNAME.key"
     fi
 
     if [ -f $CAREQDIR/$CERTNAME.req ]; then
-        echo "$ROUGE""Il existe déjà une requête avec ce nom (option update ?) : $ROSE""$CAREQDIR/$CERTNAME.req"
-        exit 1
+        exit_with_error_msg "Il existe déjà une requête avec ce nom (option update ?) : $ROSE""$CAREQDIR/$CERTNAME.req"
     fi
 
     if [ -f $SSLCERTDIR/$CERTNAME.pem ]; then
-        echo "$ROUGE""Il existe déjà un certificat (option update ?) : $ROSE""$SSLCERTDIR/$CERTNAME.pem"
-        exit 1
+        exit_with_error_msg "Il existe déjà un certificat (option update ?) : $ROSE""$SSLCERTDIR/$CERTNAME.pem"
     fi
 
     echo "Création de la nouvelle clé privée (""$ROSE""$CAPRIVATEDIR/$CERTNAME.key""$NORMAL"") : "
-    execute "openssl genrsa -aes256 -out $CAPRIVATEDIR/$CERTNAME.key 2048" || (echo "Erreur lors de la création de la clé privée" && exit 1)
+    execute "openssl genrsa -aes256 -out $CAPRIVATEDIR/$CERTNAME.key 2048" || exit_with_error_msg "Erreur lors de la création de la clé privée"
 
     echo "Création de la nouvelle requête (""$ROSE""$CAREQDIR/$CERTNAME.req""$NORMAL"") : "
-    execute "openssl req -sha256 -new -key $CAPRIVATEDIR/$CERTNAME.key -out $CAREQDIR/$CERTNAME.req -config $CONFFILS" || (echo "Erreur lors de la création de la requête" && exit 1)
+    execute "openssl req -sha256 -new -key $CAPRIVATEDIR/$CERTNAME.key -out $CAREQDIR/$CERTNAME.req -config $CONFFILS" || exit_with_error_msg "Erreur lors de la création de la requête"
 
     echo "Création du certificat et validation de celui-ci par le CA (""$ROSE""$SSLCERTDIR/$CERTNAME.pem""$NORMAL"" et copie du nouveau certificat dans ""$ROSE""$CACERTDIR/""$NORMAL"") : "
-    execute "openssl ca -days 365 -in $CAREQDIR/$CERTNAME.req -out $SSLCERTDIR/$CERTNAME.pem -config $CONFFILS" || (echo "Erreur lors de la création du certificat à valider" && exit 1)
+    execute "openssl ca -days 365 -in $CAREQDIR/$CERTNAME.req -out $SSLCERTDIR/$CERTNAME.pem -config $CONFFILS" || exit_with_error_msg "Erreur lors de la création du certificat à valider"
 
     echo "Copie de la clé privée vers le dossier SSL (dans ""$ROSE""$SSLPRIVATEDIR/$CERTNAME.key""$NORMAL"") : "
     execute "cp -i $CAPRIVATEDIR/$CERTNAME.key $SSLPRIVATEDIR/$CERTNAME.key"
@@ -153,8 +153,7 @@ help_display() {
 
 # Vérification que le script est bien lancé en root
 if [ "$(id -u)" != "0" ]; then
-   echo "$ROUGE""Ce script doit être lancé en root (avec les droits administrateurs)" 1>&2
-   exit 1
+   exit_with_error_msg "Ce script doit être lancé en root (avec les droits administrateurs)"
 fi
 
 case "$1" in
