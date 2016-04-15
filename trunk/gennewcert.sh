@@ -137,6 +137,32 @@ update() {
     echo "Mise à jour du certificat ""$CYAN""$CERTNAME""$NORMAL"" terminée"
 }
 
+config_display() {
+    echo ""
+    echo " +-------------- Configuration :"
+    echo " |"
+    echo " +-> SSL Cert Dir    : $SSLCERTDIR"
+    echo " |"
+    echo " +-> SSL Private Dir : $SSLPRIVATEDIR"
+    echo " |"
+    echo " +-> Config File     : $CONFFILS"
+    echo " |"
+    echo " +-> CA Cert Dir     : $CACERTDIR"
+    echo " |"
+    echo " +-> CA Private Dir  : $CAPRIVATEDIR"
+    echo " |"
+    echo " +-> CA Req Dir      : $CAREQDIR"
+    echo " |"
+    echo " +-> Old Cert Dir    : $OLDCERTDIR"
+    echo " |"
+    echo " +-> Old Private Dir : $OLDPRIVATEDIR"
+    echo " |"
+    echo " +-> Old Req Dir     : $OLDREQDIR"
+    echo " |"
+    echo " +--------------"
+    echo ""
+}
+
 help_display() {
     echo "Usage: $0 {-c|--create|-u|--update|-r|--revoke} CERTNAME"
     echo "Options :"
@@ -155,6 +181,8 @@ help_display() {
 if [ "$(id -u)" != "0" ]; then
    exit_with_error_msg "Ce script doit être lancé en root (avec les droits administrateurs)"
 fi
+
+config_display
 
 case "$1" in
     -r | --revoke)
